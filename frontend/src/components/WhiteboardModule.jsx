@@ -185,6 +185,7 @@ function DrawingCanvas({
   onElementsChange,
   remoteCursors,
   canvasState,
+  onCursorMove, // Add this prop
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -485,6 +486,9 @@ function DrawingCanvas({
     (e) => {
       const [sx, sy] = getMousePos(e);
       const [wx, wy] = screenToWorld(sx, sy);
+
+      // Emit cursor to remote users
+      if (onCursorMove) onCursorMove(wx, wy);
 
       // Panning
       if (isPanning.current) {
@@ -948,26 +952,17 @@ export default function WhiteboardModule({ isVisible = true }) {
   }, [socket, activeWhiteboard, user]);
 
   // ─── Send cursor position ─────────────────────────────
-  useEffect(() => {
-    if (!socket || !activeWhiteboard) return;
-    const handleMouse = (e) => {
+  const handleCursorMove = useCallback(
+    (wx, wy) => {
+      if (!socket || !activeWhiteboard) return;
       socket.emit("whiteboard-cursor", {
         whiteboardId: activeWhiteboard._id,
-        cursor: { x: e.clientX, y: e.clientY },
+        cursor: { x: wx, y: wy },
         userName: user?.name || "Unknown",
       });
-    };
-    // Throttle to ~20fps
-    let last = 0;
-    const throttled = (e) => {
-      const now = Date.now();
-      if (now - last < 50) return;
-      last = now;
-      handleMouse(e);
-    };
-    window.addEventListener("mousemove", throttled);
-    return () => window.removeEventListener("mousemove", throttled);
-  }, [socket, activeWhiteboard, user]);
+    },
+    [socket, activeWhiteboard, user]
+  );
 
   // ─── Helpers ──────────────────────────────────────────
   const handleArchive = async (id, e) => {

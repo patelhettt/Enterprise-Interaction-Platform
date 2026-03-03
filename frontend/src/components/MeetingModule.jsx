@@ -231,10 +231,10 @@ const MeetingRoom = ({
   const toggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(() => {});
+      containerRef.current.requestFullscreen().catch(() => { });
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
       setIsFullscreen(false);
     }
   }, []);
@@ -380,7 +380,7 @@ const MeetingRoom = ({
       }
       if (el && tile.stream && el.srcObject !== tile.stream) {
         el.srcObject = tile.stream;
-        el.play().catch(() => {});
+        el.play().catch(() => { });
       }
     };
 
@@ -529,435 +529,425 @@ const MeetingRoom = ({
         ref={containerRef}
         className="flex-1 flex flex-col min-h-0 bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden"
       >
-      {/* ---- Top bar ---- */}
-      <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between flex-shrink-0 bg-zinc-900/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-7 h-7 rounded-full bg-indigo-500/80 flex items-center justify-center flex-shrink-0">
-            <Video className="w-3.5 h-3.5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-white truncate">
-              {activeMeeting.title}
-            </h3>
-            <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-              <span>{elapsed}</span>
-              <span>&bull;</span>
-              <span>
-                {participantCount} participant
-                {participantCount !== 1 ? "s" : ""}
-              </span>
-              {activeMeeting.isHost && activeMeeting.meeting_code && activeMeeting.status === "active" && (
-                <>
-                  <span>&bull;</span>
-                  <span className="font-mono text-zinc-400">
-                    {activeMeeting.meeting_code}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => copyMeetingLink(activeMeeting)}
-                    className="p-0.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white"
-                    title="Copy invite link"
-                  >
-                    <Copy className="w-3 h-3" />
-                  </button>
-                </>
-              )}
+        {/* ---- Top bar ---- */}
+        <div className="h-12 px-4 border-b border-zinc-800 flex items-center justify-between flex-shrink-0 bg-zinc-900/80 backdrop-blur-sm">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-indigo-500/80 flex items-center justify-center flex-shrink-0">
+              <Video className="w-3.5 h-3.5 text-white" />
             </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-            title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-          >
-            {isFullscreen ? (
-              <Minimize className="w-4 h-4" />
-            ) : (
-              <Maximize className="w-4 h-4" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowSidebar((s) => !s)}
-            className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors relative"
-            title={showSidebar ? "Hide sidebar" : "Show sidebar"}
-          >
-            {showSidebar ? (
-              <PanelRightClose className="w-4 h-4" />
-            ) : (
-              <PanelRightOpen className="w-4 h-4" />
-            )}
-            {!showSidebar && unreadChat > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-indigo-500 text-[9px] text-white flex items-center justify-center font-bold">
-                {unreadChat > 9 ? "9+" : unreadChat}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* ---- Main content area ---- */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Video area */}
-        <div className="flex-1 flex flex-col min-h-0 min-w-0">
-          <div className="flex-1 p-2 min-h-0 flex gap-2">
-            {pinnedTile ? (
-              <>
-                {/* Pinned large view */}
-                <div className="flex-1 min-h-0 min-w-0">
-                  {renderTile(pinnedTile, "w-full h-full")}
-                </div>
-                {/* Unpinned strip */}
-                {unpinnedTiles.length > 0 && (
-                  <div className="w-44 flex flex-col gap-2 overflow-y-auto">
-                    {unpinnedTiles.map((t) =>
-                      renderTile(t, "w-full aspect-video flex-shrink-0")
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              /* Grid layout */
-              <div
-                className="flex-1 grid gap-2 min-h-0 min-w-0"
-                style={{
-                  gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
-                  gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
-                }}
-              >
-                {unpinnedTiles.map((t) => renderTile(t, "min-h-[180px]"))}
-              </div>
-            )}
-          </div>
-
-          {/* ---- Bottom control bar ---- */}
-          <div className="h-16 flex-shrink-0 border-t border-zinc-800 bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center px-4">
-            <div className="flex items-center gap-2">
-              {/* Mute */}
-              <button
-                type="button"
-                onClick={meetingCall.toggleMute}
-                title={meetingCall.isMuted ? "Unmute (m)" : "Mute (m)"}
-                className={`p-3 rounded-full transition-colors ${
-                  meetingCall.isMuted
-                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
-                }`}
-              >
-                {meetingCall.isMuted ? (
-                  <MicOff className="w-5 h-5" />
-                ) : (
-                  <Mic className="w-5 h-5" />
-                )}
-              </button>
-
-              {/* Camera */}
-              <button
-                type="button"
-                onClick={meetingCall.toggleVideo}
-                title={
-                  meetingCall.isVideoOff
-                    ? "Turn on camera (v)"
-                    : "Turn off camera (v)"
-                }
-                className={`p-3 rounded-full transition-colors ${
-                  meetingCall.isVideoOff
-                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
-                }`}
-              >
-                {meetingCall.isVideoOff ? (
-                  <VideoOff className="w-5 h-5" />
-                ) : (
-                  <Video className="w-5 h-5" />
-                )}
-              </button>
-
-              {/* Screen share */}
-              <button
-                type="button"
-                onClick={meetingCall.toggleScreenShare}
-                title={
-                  meetingCall.isScreenSharing ? "Stop sharing" : "Share screen"
-                }
-                className={`p-3 rounded-full transition-colors ${
-                  meetingCall.isScreenSharing
-                    ? "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
-                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
-                }`}
-              >
-                {meetingCall.isScreenSharing ? (
-                  <MonitorOff className="w-5 h-5" />
-                ) : (
-                  <Monitor className="w-5 h-5" />
-                )}
-              </button>
-
-              {/* Hand raise */}
-              <button
-                type="button"
-                onClick={meetingCall.toggleHandRaise}
-                title={meetingCall.handRaised ? "Lower hand" : "Raise hand"}
-                className={`p-3 rounded-full transition-colors ${
-                  meetingCall.handRaised
-                    ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
-                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
-                }`}
-              >
-                <Hand className="w-5 h-5" />
-              </button>
-
-              {/* Recording (host only) */}
-              {activeMeeting.isHost && (
-                <button
-                  type="button"
-                  onClick={handleRecordingToggle}
-                  disabled={uploadingRecordings}
-                  title={
-                    meetingCall.isRecording
-                      ? "Stop recording"
-                      : "Start recording (saves to cloud)"
-                  }
-                  className={`p-3 rounded-full transition-colors ${
-                    meetingCall.isRecording
-                      ? "bg-red-500/30 text-red-400 hover:bg-red-500/40"
-                      : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
-                  } ${uploadingRecordings ? "opacity-50 pointer-events-none" : ""}`}
-                >
-                  {uploadingRecordings ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Circle
-                      className={`w-5 h-5 ${meetingCall.isRecording ? "fill-current" : ""}`}
-                    />
-                  )}
-                </button>
-              )}
-
-              <div className="w-px h-8 bg-zinc-700 mx-1" />
-
-              {/* Leave / End */}
-              <button
-                type="button"
-                onClick={handleLeaveMeeting}
-                className="px-4 py-2.5 rounded-full bg-red-600 text-white hover:bg-red-500 flex items-center gap-2 text-sm font-medium transition-colors"
-              >
-                <PhoneOff className="w-4 h-4" />
-                {activeMeeting.isHost ? "End" : "Leave"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ---- Sidebar ---- */}
-        {showSidebar && (
-          <div className="w-80 border-l border-zinc-800 flex flex-col bg-zinc-900/60">
-            {/* Sidebar tabs */}
-            <div className="flex border-b border-zinc-800">
-              <button
-                type="button"
-                onClick={() => {
-                  setSidebarTab("chat");
-                  setUnreadChat(0);
-                }}
-                className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                  sidebarTab === "chat"
-                    ? "text-white border-b-2 border-indigo-500"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                Chat
-                {unreadChat > 0 && sidebarTab !== "chat" && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-indigo-500 text-[9px] text-white font-bold">
-                    {unreadChat}
-                  </span>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSidebarTab("participants")}
-                className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                  sidebarTab === "participants"
-                    ? "text-white border-b-2 border-indigo-500"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                People ({participantCount})
-                {activeMeeting.isHost && lobbyRequests.length > 0 && (
-                  <span
-                    className="ml-1 w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
-                    title={`${lobbyRequests.length} waiting to join`}
-                  >
-                    {lobbyRequests.length}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* Tab content */}
-            {sidebarTab === "participants" ? (
-              <div className="flex-1 overflow-y-auto p-3 space-y-1.5 relative">
-                {/* Join requests button (host only) */}
-                {activeMeeting.isHost && (
-                  <div className="mb-3">
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-white truncate">
+                {activeMeeting.title}
+              </h3>
+              <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                <span>{elapsed}</span>
+                <span>&bull;</span>
+                <span>
+                  {participantCount} participant
+                  {participantCount !== 1 ? "s" : ""}
+                </span>
+                {activeMeeting.isHost && activeMeeting.meeting_code && activeMeeting.status === "active" && (
+                  <>
+                    <span>&bull;</span>
+                    <span className="font-mono text-zinc-400">
+                      {activeMeeting.meeting_code}
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setLobbyBoxOpen(true)}
-                      className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${
-                        lobbyRequests.length > 0
-                          ? "bg-amber-500/15 border border-amber-500/40 text-amber-200 hover:bg-amber-500/25"
-                          : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800"
-                      }`}
+                      onClick={() => copyMeetingLink(activeMeeting)}
+                      className="p-0.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                      title="Copy invite link"
                     >
-                      <span>Join requests</span>
-                      {lobbyRequests.length > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-amber-500/30 text-xs font-semibold text-amber-100">
-                          {lobbyRequests.length}
-                        </span>
-                      )}
+                      <Copy className="w-3 h-3" />
                     </button>
-                  </div>
+                  </>
                 )}
-
-                {/* Current user */}
-                <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-zinc-800/80">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/30 flex items-center justify-center text-xs text-indigo-200 font-medium">
-                    {getInitials(currentUserName)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-white truncate">
-                      {currentUserName}
-                    </p>
-                    <p className="text-[10px] text-emerald-400">
-                      You {activeMeeting.isHost ? "(host)" : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {meetingCall.isMuted && (
-                      <MicOff className="w-3 h-3 text-red-400" />
-                    )}
-                    {meetingCall.isVideoOff && (
-                      <VideoOff className="w-3 h-3 text-red-400" />
-                    )}
-                    {meetingCall.handRaised && (
-                      <Hand className="w-3 h-3 text-amber-400" />
-                    )}
-                    {meetingCall.isScreenSharing && (
-                      <Monitor className="w-3 h-3 text-emerald-400" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Remote participants */}
-                {remoteParticipants.map((p) => {
-                  const uid = String(p.userId);
-                  const rState = meetingCall.remoteMediaStates[uid] || {};
-                  return (
-                    <div
-                      key={uid}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-zinc-800/40 hover:bg-zinc-800/60 transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs text-zinc-100 font-medium">
-                        {getInitials(p.name)}
-                      </div>
-                      <p className="flex-1 text-xs font-medium text-zinc-100 truncate">
-                        {p.name || "User"}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {rState.isMuted && (
-                          <MicOff className="w-3 h-3 text-red-400" />
-                        )}
-                        {rState.isVideoOff && (
-                          <VideoOff className="w-3 h-3 text-red-400" />
-                        )}
-                        {rState.handRaised && (
-                          <Hand className="w-3 h-3 text-amber-400 animate-bounce" />
-                        )}
-                        {meetingCall.screenShareUserId === uid && (
-                          <Monitor className="w-3 h-3 text-emerald-400" />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
-            ) : (
-              /* Chat tab */
-              <div className="flex-1 flex flex-col min-h-0">
-                <div
-                  ref={chatContainerRef}
-                  className="flex-1 overflow-y-auto p-3 space-y-3"
-                >
-                  {chatMessages.length === 0 && (
-                    <div className="text-center py-8">
-                      <MessageCircle className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-                      <p className="text-xs text-zinc-500">
-                        No messages yet. Say hello!
-                      </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize className="w-4 h-4" />
+              ) : (
+                <Maximize className="w-4 h-4" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowSidebar((s) => !s)}
+              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors relative"
+              title={showSidebar ? "Hide sidebar" : "Show sidebar"}
+            >
+              {showSidebar ? (
+                <PanelRightClose className="w-4 h-4" />
+              ) : (
+                <PanelRightOpen className="w-4 h-4" />
+              )}
+              {!showSidebar && unreadChat > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-indigo-500 text-[9px] text-white flex items-center justify-center font-bold">
+                  {unreadChat > 9 ? "9+" : unreadChat}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* ---- Main content area ---- */}
+        <div className="flex-1 flex min-h-0 overflow-hidden">
+          {/* Video area */}
+          <div className="flex-1 flex flex-col min-h-0 min-w-0">
+            <div className="flex-1 p-2 min-h-0 flex gap-2">
+              {pinnedTile ? (
+                <>
+                  {/* Pinned large view */}
+                  <div className="flex-1 min-h-0 min-w-0">
+                    {renderTile(pinnedTile, "w-full h-full")}
+                  </div>
+                  {/* Unpinned strip */}
+                  {unpinnedTiles.length > 0 && (
+                    <div className="w-44 flex flex-col gap-2 overflow-y-auto">
+                      {unpinnedTiles.map((t) =>
+                        renderTile(t, "w-full aspect-video flex-shrink-0")
+                      )}
                     </div>
                   )}
-                  {chatMessages.map((msg) => {
-                    const isOwn = String(msg.userId) === String(currentUserId);
+                </>
+              ) : (
+                /* Grid layout */
+                <div
+                  className="flex-1 grid gap-2 min-h-0 min-w-0"
+                  style={{
+                    gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {unpinnedTiles.map((t) => renderTile(t, "min-h-[120px] max-h-full object-contain"))}
+                </div>
+              )}
+            </div>
+
+            {/* ---- Bottom control bar ---- */}
+            <div className="h-16 flex-shrink-0 border-t border-zinc-800 bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center px-4">
+              <div className="flex items-center gap-2">
+                {/* Mute */}
+                <button
+                  type="button"
+                  onClick={meetingCall.toggleMute}
+                  title={meetingCall.isMuted ? "Unmute (m)" : "Mute (m)"}
+                  className={`p-3 rounded-full transition-colors ${meetingCall.isMuted
+                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+                    }`}
+                >
+                  {meetingCall.isMuted ? (
+                    <MicOff className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </button>
+
+                {/* Camera */}
+                <button
+                  type="button"
+                  onClick={meetingCall.toggleVideo}
+                  title={
+                    meetingCall.isVideoOff
+                      ? "Turn on camera (v)"
+                      : "Turn off camera (v)"
+                  }
+                  className={`p-3 rounded-full transition-colors ${meetingCall.isVideoOff
+                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+                    }`}
+                >
+                  {meetingCall.isVideoOff ? (
+                    <VideoOff className="w-5 h-5" />
+                  ) : (
+                    <Video className="w-5 h-5" />
+                  )}
+                </button>
+
+                {/* Screen share */}
+                <button
+                  type="button"
+                  onClick={meetingCall.toggleScreenShare}
+                  title={
+                    meetingCall.isScreenSharing ? "Stop sharing" : "Share screen"
+                  }
+                  className={`p-3 rounded-full transition-colors ${meetingCall.isScreenSharing
+                    ? "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+                    }`}
+                >
+                  {meetingCall.isScreenSharing ? (
+                    <MonitorOff className="w-5 h-5" />
+                  ) : (
+                    <Monitor className="w-5 h-5" />
+                  )}
+                </button>
+
+                {/* Hand raise */}
+                <button
+                  type="button"
+                  onClick={meetingCall.toggleHandRaise}
+                  title={meetingCall.handRaised ? "Lower hand" : "Raise hand"}
+                  className={`p-3 rounded-full transition-colors ${meetingCall.handRaised
+                    ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
+                    : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+                    }`}
+                >
+                  <Hand className="w-5 h-5" />
+                </button>
+
+                {/* Recording (host only) */}
+                {activeMeeting.isHost && (
+                  <button
+                    type="button"
+                    onClick={handleRecordingToggle}
+                    disabled={uploadingRecordings}
+                    title={
+                      meetingCall.isRecording
+                        ? "Stop recording"
+                        : "Start recording (saves to cloud)"
+                    }
+                    className={`p-3 rounded-full transition-colors ${meetingCall.isRecording
+                      ? "bg-red-500/30 text-red-400 hover:bg-red-500/40"
+                      : "bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+                      } ${uploadingRecordings ? "opacity-50 pointer-events-none" : ""}`}
+                  >
+                    {uploadingRecordings ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Circle
+                        className={`w-5 h-5 ${meetingCall.isRecording ? "fill-current" : ""}`}
+                      />
+                    )}
+                  </button>
+                )}
+
+                <div className="w-px h-8 bg-zinc-700 mx-1" />
+
+                {/* Leave / End */}
+                <button
+                  type="button"
+                  onClick={handleLeaveMeeting}
+                  className="px-4 py-2.5 rounded-full bg-red-600 text-white hover:bg-red-500 flex items-center gap-2 text-sm font-medium transition-colors"
+                >
+                  <PhoneOff className="w-4 h-4" />
+                  {activeMeeting.isHost ? "End" : "Leave"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ---- Sidebar ---- */}
+          {showSidebar && (
+            <div className="w-80 border-l border-zinc-800 flex flex-col bg-zinc-900/60">
+              {/* Sidebar tabs */}
+              <div className="flex border-b border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSidebarTab("chat");
+                    setUnreadChat(0);
+                  }}
+                  className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${sidebarTab === "chat"
+                    ? "text-white border-b-2 border-indigo-500"
+                    : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  Chat
+                  {unreadChat > 0 && sidebarTab !== "chat" && (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full bg-indigo-500 text-[9px] text-white font-bold">
+                      {unreadChat}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidebarTab("participants")}
+                  className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${sidebarTab === "participants"
+                    ? "text-white border-b-2 border-indigo-500"
+                    : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  People ({participantCount})
+                  {activeMeeting.isHost && lobbyRequests.length > 0 && (
+                    <span
+                      className="ml-1 w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0"
+                      title={`${lobbyRequests.length} waiting to join`}
+                    >
+                      {lobbyRequests.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Tab content */}
+              {sidebarTab === "participants" ? (
+                <div className="flex-1 overflow-y-auto p-3 space-y-1.5 relative">
+                  {/* Join requests button (host only) */}
+                  {activeMeeting.isHost && (
+                    <div className="mb-3">
+                      <button
+                        type="button"
+                        onClick={() => setLobbyBoxOpen(true)}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${lobbyRequests.length > 0
+                          ? "bg-amber-500/15 border border-amber-500/40 text-amber-200 hover:bg-amber-500/25"
+                          : "bg-zinc-800/80 text-zinc-400 hover:bg-zinc-800"
+                          }`}
+                      >
+                        <span>Join requests</span>
+                        {lobbyRequests.length > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full bg-amber-500/30 text-xs font-semibold text-amber-100">
+                            {lobbyRequests.length}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Current user */}
+                  <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-zinc-800/80">
+                    <div className="w-8 h-8 rounded-full bg-indigo-500/30 flex items-center justify-center text-xs text-indigo-200 font-medium">
+                      {getInitials(currentUserName)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-white truncate">
+                        {currentUserName}
+                      </p>
+                      <p className="text-[10px] text-emerald-400">
+                        You {activeMeeting.isHost ? "(host)" : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {meetingCall.isMuted && (
+                        <MicOff className="w-3 h-3 text-red-400" />
+                      )}
+                      {meetingCall.isVideoOff && (
+                        <VideoOff className="w-3 h-3 text-red-400" />
+                      )}
+                      {meetingCall.handRaised && (
+                        <Hand className="w-3 h-3 text-amber-400" />
+                      )}
+                      {meetingCall.isScreenSharing && (
+                        <Monitor className="w-3 h-3 text-emerald-400" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Remote participants */}
+                  {remoteParticipants.map((p) => {
+                    const uid = String(p.userId);
+                    const rState = meetingCall.remoteMediaStates[uid] || {};
                     return (
                       <div
-                        key={msg.id}
-                        className={`flex flex-col ${
-                          isOwn ? "items-end" : "items-start"
-                        }`}
+                        key={uid}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-zinc-800/40 hover:bg-zinc-800/60 transition-colors"
                       >
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[10px] font-medium text-zinc-400">
-                            {isOwn ? "You" : msg.name}
-                          </span>
-                          <span className="text-[9px] text-zinc-600">
-                            {new Date(msg.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
+                        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs text-zinc-100 font-medium">
+                          {getInitials(p.name)}
                         </div>
-                        <div
-                          className={`px-3 py-1.5 rounded-xl text-xs max-w-[85%] ${
-                            isOwn
-                              ? "bg-indigo-600 text-white rounded-br-sm"
-                              : "bg-zinc-800 text-zinc-200 rounded-bl-sm"
-                          }`}
-                        >
-                          {msg.content}
+                        <p className="flex-1 text-xs font-medium text-zinc-100 truncate">
+                          {p.name || "User"}
+                        </p>
+                        <div className="flex items-center gap-1">
+                          {rState.isMuted && (
+                            <MicOff className="w-3 h-3 text-red-400" />
+                          )}
+                          {rState.isVideoOff && (
+                            <VideoOff className="w-3 h-3 text-red-400" />
+                          )}
+                          {rState.handRaised && (
+                            <Hand className="w-3 h-3 text-amber-400 animate-bounce" />
+                          )}
+                          {meetingCall.screenShareUserId === uid && (
+                            <Monitor className="w-3 h-3 text-emerald-400" />
+                          )}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <form
-                  onSubmit={handleSendChat}
-                  className="p-3 border-t border-zinc-800 flex gap-2"
-                >
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!chatInput.trim()}
-                    className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+              ) : (
+                /* Chat tab */
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto p-3 space-y-3"
                   >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-        )}
+                    {chatMessages.length === 0 && (
+                      <div className="text-center py-8">
+                        <MessageCircle className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+                        <p className="text-xs text-zinc-500">
+                          No messages yet. Say hello!
+                        </p>
+                      </div>
+                    )}
+                    {chatMessages.map((msg) => {
+                      const isOwn = String(msg.userId) === String(currentUserId);
+                      return (
+                        <div
+                          key={msg.id}
+                          className={`flex flex-col ${isOwn ? "items-end" : "items-start"
+                            }`}
+                        >
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="text-[10px] font-medium text-zinc-400">
+                              {isOwn ? "You" : msg.name}
+                            </span>
+                            <span className="text-[9px] text-zinc-600">
+                              {new Date(msg.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <div
+                            className={`px-3 py-1.5 rounded-xl text-xs max-w-[85%] ${isOwn
+                              ? "bg-indigo-600 text-white rounded-br-sm"
+                              : "bg-zinc-800 text-zinc-200 rounded-bl-sm"
+                              }`}
+                          >
+                            {msg.content}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <form
+                    onSubmit={handleSendChat}
+                    className="p-3 border-t border-zinc-800 flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Type a message..."
+                      className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!chatInput.trim()}
+                      className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 };
@@ -1053,7 +1043,7 @@ const RecordingPlaybackModal = ({
   const seekTo = (time) => {
     if (videoRef.current) {
       videoRef.current.currentTime = time;
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch(() => { });
     }
   };
 
@@ -1235,11 +1225,10 @@ const RecordingPlaybackModal = ({
                     <button
                       key={rec._id}
                       onClick={() => { setSelectedRecording(rec); setActiveTab("recording"); setCurrentCaption(""); }}
-                      className={`shrink-0 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
-                        (currentRec?._id === rec._id)
-                          ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
-                          : "bg-zinc-800 border-zinc-700/50 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
-                      }`}
+                      className={`shrink-0 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${(currentRec?._id === rec._id)
+                        ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
+                        : "bg-zinc-800 border-zinc-700/50 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+                        }`}
                     >
                       Recording {idx + 1}{rec.participant_name ? ` — ${rec.participant_name}` : ""}
                     </button>
@@ -1339,11 +1328,10 @@ const RecordingPlaybackModal = ({
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${
-                            activeTab === tab.id
-                              ? "text-indigo-300 border-b-2 border-indigo-400"
-                              : "text-zinc-500 hover:text-zinc-300"
-                          }`}
+                          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${activeTab === tab.id
+                            ? "text-indigo-300 border-b-2 border-indigo-400"
+                            : "text-zinc-500 hover:text-zinc-300"
+                            }`}
                         >
                           <tab.icon className="w-3.5 h-3.5" />
                           {tab.label}
@@ -1369,11 +1357,10 @@ const RecordingPlaybackModal = ({
                                       key={i}
                                       data-seg-start={seg.start}
                                       onClick={() => seekTo(seg.start)}
-                                      className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors group ${
-                                        isActive
-                                          ? "bg-indigo-500/15 text-indigo-200 border border-indigo-500/30"
-                                          : "text-zinc-300 hover:bg-zinc-800/60 border border-transparent"
-                                      }`}
+                                      className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors group ${isActive
+                                        ? "bg-indigo-500/15 text-indigo-200 border border-indigo-500/30"
+                                        : "text-zinc-300 hover:bg-zinc-800/60 border border-transparent"
+                                        }`}
                                     >
                                       <span className={`text-[10px] font-mono mr-2 ${isActive ? "text-indigo-400" : "text-zinc-600 group-hover:text-zinc-400"}`}>
                                         {formatTime(seg.start)}
@@ -1575,11 +1562,10 @@ const RecordingPlaybackModal = ({
                                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                                   >
                                     <div
-                                      className={`max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed ${
-                                        msg.role === "user"
-                                          ? "bg-indigo-500/20 text-indigo-100 border border-indigo-500/30 rounded-br-sm"
-                                          : "bg-zinc-800 text-zinc-300 border border-zinc-700/50 rounded-bl-sm"
-                                      }`}
+                                      className={`max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed ${msg.role === "user"
+                                        ? "bg-indigo-500/20 text-indigo-100 border border-indigo-500/30 rounded-br-sm"
+                                        : "bg-zinc-800 text-zinc-300 border border-zinc-700/50 rounded-bl-sm"
+                                        }`}
                                     >
                                       {msg.role === "assistant" && (
                                         <div className="flex items-center gap-1 mb-1.5">
@@ -1667,7 +1653,7 @@ const RecordingPlaybackModal = ({
   );
 };
 
-const MeetingModule = ({ isVisible = true, onMeetingStateChange , readOnly = false }) => {
+const MeetingModule = ({ isVisible = true, onMeetingStateChange, readOnly = false }) => {
 
   const { socket, user } = useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1736,8 +1722,8 @@ const MeetingModule = ({ isVisible = true, onMeetingStateChange , readOnly = fal
   const currentUserId = user?.id || user?._id;
   const currentUserName = user
     ? `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-      user.email ||
-      "You"
+    user.email ||
+    "You"
     : "You";
 
   const meetingCall = useMeetingCall(
@@ -2135,8 +2121,8 @@ const MeetingModule = ({ isVisible = true, onMeetingStateChange , readOnly = fal
       date: d ? toLocalDateString(d) : "",
       time: d
         ? `${String(d.getHours()).padStart(2, "0")}:${String(
-            d.getMinutes()
-          ).padStart(2, "0")}`
+          d.getMinutes()
+        ).padStart(2, "0")}`
         : "",
       duration_minutes: meeting.duration_minutes || 30,
       location: meeting.location || "",
@@ -2836,7 +2822,7 @@ const MeetingModule = ({ isVisible = true, onMeetingStateChange , readOnly = fal
     const video = localVideoRef.current;
     if (video.srcObject !== displayLocalStream) {
       video.srcObject = displayLocalStream;
-      video.play().catch(() => {});
+      video.play().catch(() => { });
     }
     return () => {
       if (localVideoRef.current) localVideoRef.current.srcObject = null;
@@ -2855,7 +2841,7 @@ const MeetingModule = ({ isVisible = true, onMeetingStateChange , readOnly = fal
       if (videoEl && stream) {
         if (videoEl.srcObject !== stream) {
           videoEl.srcObject = stream;
-          videoEl.play().catch(() => {});
+          videoEl.play().catch(() => { });
         }
       }
     });
@@ -2903,773 +2889,773 @@ const MeetingModule = ({ isVisible = true, onMeetingStateChange , readOnly = fal
       {/* ---- Active meeting room (always mounted when active, hidden via parent) ---- */}
       {activeMeeting && (
         <MeetingRoom
-            activeMeeting={activeMeeting}
-            roomParticipants={roomParticipants}
-            currentUserId={currentUserId}
-            currentUserName={currentUserName}
-            meetingCall={meetingCall}
-            displayLocalStream={displayLocalStream}
-            localVideoRef={localVideoRef}
-            videoRefs={videoRefs}
-            chatMessages={chatMessages}
-            chatInput={chatInput}
-            setChatInput={setChatInput}
-            handleSendChat={handleSendChat}
-            chatContainerRef={chatContainerRef}
-            copyMeetingLink={copyMeetingLink}
-            handleLeaveMeeting={handleLeaveMeeting}
-            onUploadRecordings={handleUploadRecordings}
-            lobbyRequests={lobbyRequests}
-            onAdmitToLobby={handleAdmitToLobby}
-          />
-        )}
-
-      {/* ---- Main view (calendar + meeting list) ---- */}
-      {showMainView && (
-    <div className="w-full h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden px-4 sm:px-6 lg:px-8 py-6">
-      {/* Instant meeting: is it open for everyone with the link? (Yes / No only) */}
-      {showInstantMeetingDialog && !readOnly && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-xl max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold text-white mb-2">Start instant meeting</h3>
-            <p className="text-sm text-zinc-400 mb-6">Is it open for everyone with the link?</p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                type="button"
-                onClick={() => handleInstantMeeting(true)}
-                className="flex-1 px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500"
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                onClick={() => handleInstantMeeting(false)}
-                className="flex-1 px-4 py-3 rounded-lg bg-zinc-700 text-white font-medium hover:bg-zinc-600"
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-shrink-0 flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-xl font-semibold text-white mb-1">Meetings</h1>
-          <p className="text-sm text-zinc-400">
-            Schedule, manage and get reminders for your meetings
-          </p>
-        </div>
-        {!readOnly && (
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={startInstantMeetingFlow}
-            disabled={creatingInstant || !socket}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition shadow-sm disabled:opacity-50"
-          >
-            {creatingInstant ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Zap className="w-4 h-4" />
-            )}
-            <span className="hidden sm:inline">
-              {creatingInstant ? "Starting..." : "Instant meeting"}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={openCreateForm}
-            disabled={isSelectedDatePast}
-            title={isSelectedDatePast ? "Select a current or future date to schedule" : undefined}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Schedule meeting</span>
-          </button>
-        </div>
-        )}
-      </div>
-
-      {/* Join by code or link */}
-      <div className="flex-shrink-0 mb-4 p-4 bg-zinc-900 rounded-xl border border-zinc-700/50">
-        <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-2">
-          <Link2 className="w-4 h-4" />
-          Join by meeting code or link
-        </h3>
-        <p className="text-xs text-zinc-400 mb-3">
-          Enter the meeting code or paste the full meeting link to join.
-        </p>
-        <form onSubmit={handleJoinByCode} className="flex gap-2">
-          <input
-            type="text"
-            value={joinCodeInput}
-            onChange={(e) => setJoinCodeInput(e.target.value)}
-            placeholder="e.g. ABC12345 or https://.../join/ABC12345"
-            className="flex-1 min-w-0 max-w-md px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-sm text-white font-mono placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-          <button
-            type="submit"
-            disabled={joiningByCode || !joinCodeInput.trim()}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition disabled:opacity-50"
-          >
-            {joiningByCode ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <LogIn className="w-4 h-4" />
-            )}
-            Join
-          </button>
-        </form>
-      </div>
-
-      {/* Calendar + list: fills remaining space, no page scroll */}
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-6 overflow-hidden">
-        {/* Calendar */}
-        <div className="flex-shrink-0 bg-zinc-900 rounded-xl border border-zinc-700/50 p-5 w-full lg:max-w-[1000px]">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              type="button"
-              onClick={() => changeMonth(-1)}
-              className="px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
-            >
-              &#8592; Prev
-            </button>
-            <div className="text-base font-semibold text-white tracking-wide">
-              {monthLabel}
-            </div>
-            <button
-              type="button"
-              onClick={() => changeMonth(1)}
-              className="px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
-            >
-              Next &#8594;
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 text-xs font-medium text-zinc-400 mb-2">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="text-center py-1.5">
-                {d}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1.5 text-sm">
-            {calendarDays.map((day, idx) => {
-              if (!day) {
-                return (
-                  <div
-                    key={`blank-${idx}`}
-                    className="h-[5.5rem] rounded-lg bg-zinc-900/50"
-                  />
-                );
-              }
-
-              const key = toLocalDateString(day);
-              const dayMeetings = meetingsByDay[key] || [];
-              const isToday = isSameDay(day, today);
-              const isSelected = isSameDay(day, selectedDate);
-
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleCalendarDayClick(day)}
-                  className={[
-                    "h-[5.5rem] rounded-lg flex flex-col items-center justify-center border text-sm font-medium transition-all cursor-pointer",
-                    isSelected
-                      ? "border-indigo-500 bg-indigo-500/20 text-white shadow-sm shadow-indigo-500/20"
-                      : "border-zinc-700/40 text-zinc-200 hover:bg-zinc-800/80 hover:border-zinc-600",
-                    isToday && !isSelected
-                      ? "ring-2 ring-indigo-500/50 ring-offset-1 ring-offset-zinc-900"
-                      : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  <span className="leading-none">{day.getDate()}</span>
-                  {dayMeetings.length > 0 && (
-                    <div className="flex items-center gap-0.5 mt-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      {dayMeetings.length > 1 && (
-                        <span className="text-[9px] text-emerald-400 font-medium leading-none">
-                          {dayMeetings.length}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {loading && (
-            <div className="flex items-center gap-2 mt-4 text-xs text-zinc-400">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Loading meetings...
-            </div>
-          )}
-        </div>
-
-        {/* Selected day meeting list: fills remaining height, scrolls internally */}
-        <div className="flex-1 min-h-0 flex flex-col min-w-0 w-full lg:w-[535px] bg-zinc-900 rounded-xl border border-zinc-700/50 p-4 overflow-hidden">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-xs text-zinc-400 mb-0.5">Selected day</p>
-              <p className="text-sm font-medium text-white">
-                {selectedDate.toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-          </div>
-
-          {/* Search & Filter bar */}
-          <div className="flex items-center gap-2 mb-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
-              <input
-                type="text"
-                value={meetingSearchQuery}
-                onChange={(e) => setMeetingSearchQuery(e.target.value)}
-                placeholder="Search meetings..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-2 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              {STATUS_FILTERS.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {selectedDateMeetings.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-              <CalendarDays className="w-8 h-8 text-zinc-700 mb-2" />
-              <p className="text-sm text-zinc-400 mb-1">
-                No meetings scheduled
-              </p>
-              <p className="text-xs text-zinc-500 mb-2">
-                Schedule your first meeting for this day
-              </p>
-              {!readOnly && (
-              <button
-                type="button"
-                onClick={openCreateForm}
-                disabled={isSelectedDatePast}
-                title={isSelectedDatePast ? "Select a current or future date to schedule" : undefined}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 text-xs text-zinc-100 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
-              >
-                <Plus className="w-3 h-3" />
-                New meeting
-              </button>
-              )}
-            </div>
-          ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
-              {selectedDateMeetings.map((m) => {
-                const d = m.scheduled_at ? new Date(m.scheduled_at) : null;
-                const timeLabel = d
-                  ? d.toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })
-                  : "--";
-                const isActive = m.status === "active";
-                const isCancelled = m.status === "cancelled";
-                const isEnded = m.status === "ended";
-                const isPast =
-                  d &&
-                  d.getTime() < Date.now() &&
-                  !isCancelled &&
-                  !isEnded &&
-                  !isActive;
-                const relTime = d ? getRelativeTime(d) : "";
-                const participants = (m.participants || []).map(
-                  (p) =>
-                    p.full_name ||
-                    `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
-                    p.email ||
-                    "User"
-                );
-
-                return (
-                  <div
-                    key={m._id}
-                    className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 p-3 text-xs"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div>
-                        <p className="text-sm font-semibold text-white">
-                          {m.title}
-                        </p>
-                        <div className="flex items-center gap-2 text-[11px] text-zinc-400 mt-0.5">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {timeLabel}
-                            {m.duration_minutes
-                              ? ` • ${m.duration_minutes} min`
-                              : ""}
-                          </span>
-                          {m.meeting_type && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-zinc-900 text-[10px] uppercase tracking-wide">
-                              {MEETING_TYPES.find(
-                                (t) => t.value === m.meeting_type
-                              )?.label || m.meeting_type}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        {isActive ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/30 inline-flex items-center gap-1">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                            </span>
-                            Live
-                          </span>
-                        ) : isCancelled ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30">
-                            Cancelled
-                          </span>
-                        ) : isEnded ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/60">
-                            Ended
-                          </span>
-                        ) : isPast ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/60">
-                            Past
-                          </span>
-                        ) : (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                            Upcoming
-                          </span>
-                        )}
-                        {relTime && (
-                          <span className="text-[10px] text-zinc-500">
-                            {relTime}
-                          </span>
-                        )}
-                        <div className="flex gap-1">
-                          {m.meeting_code && isHost(m) && m.status === "active" && !readOnly && (
-                            <button
-                              type="button"
-                              onClick={() => copyMeetingLink(m)}
-                              className="px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-200 hover:bg-zinc-800 inline-flex items-center gap-1"
-                              title="Copy invite link"
-                            >
-                              <Copy className="w-3 h-3" />
-                              Link
-                            </button>
-                          )}
-                          {!isCancelled && !isEnded && isHost(m) && !readOnly && (
-                            <button
-                              type="button"
-                              onClick={() => openEditForm(m)}
-                              className="px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-200 hover:bg-zinc-800"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {!isCancelled && !isEnded && isHost(m) && !readOnly && (
-                            <button
-                              type="button"
-                              onClick={() => handleCancelMeeting(m)}
-                              className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                            >
-                              Cancel
-                            </button>
-                          )}
-                          {(isCancelled || isEnded) && isHost(m) && !readOnly && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteMeeting(m)}
-                              className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 hover:bg-red-500/20 inline-flex items-center gap-1"
-                              title="Delete permanently"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                              Delete
-                            </button>
-                          )}
-                          {canEnterMeeting(m) && isParticipant(m) && (
-                            <button
-                              type="button"
-                              onClick={() => handleEnterMeeting(m)}
-                              className="px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white hover:bg-indigo-500"
-                            >
-                              {isHost(m) ? "Start meeting" : "Join meeting"}
-                            </button>
-                          )}
-                          {/* Show waiting message for participants when host hasn't started yet */}
-                          {!canEnterMeeting(m) &&
-                            isParticipant(m) &&
-                            !isHost(m) &&
-                            m.status === "scheduled" && (
-                              <span className="px-2 py-0.5 rounded text-[10px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 inline-flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                Waiting for host
-                              </span>
-                            )}
-                          {/* Show message when 5-minute start window has expired */}
-                          {!canEnterMeeting(m) &&
-                            m.status === "scheduled" &&
-                            m.scheduled_at &&
-                            Date.now() >= new Date(m.scheduled_at).getTime() + 5 * 60 * 1000 && (
-                              <span className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 border border-red-500/30 inline-flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                Auto-cancelled (not started in time)
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {m.description && (
-                      <p className="text-[11px] text-zinc-300 mt-1 line-clamp-2">
-                        {m.description}
-                      </p>
-                    )}
-
-                    {isEnded && isParticipant(m) && (
-                      <div className="mt-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRecordingModal({ meetingId: m._id, meetingTitle: m.title });
-                            fetchMeetingRecordings(m._id);
-                          }}
-                          disabled={loadingRecordingsId === m._id}
-                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] bg-zinc-800 text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
-                        >
-                          {loadingRecordingsId === m._id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <Video className="w-3 h-3" />
-                          )}
-                          View recordings
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="mt-1 space-y-1">
-                      {participants.length > 0 && (
-                        <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                          <Users className="w-3 h-3" />
-                          <span className="truncate">
-                            {participants.join(", ")}
-                          </span>
-                        </div>
-                      )}
-                      {m.location && (
-                        <p className="text-[11px] text-zinc-400">
-                          Location:{" "}
-                          <span className="text-zinc-200">{m.location}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Recording Playback Modal */}
-      {recordingModal && (
-        <RecordingPlaybackModal
-          recordingModal={recordingModal}
-          setRecordingModal={setRecordingModal}
-          loadingRecordingsId={loadingRecordingsId}
-          recordingsByMeeting={recordingsByMeeting}
-          axiosConfig={axiosConfig}
+          activeMeeting={activeMeeting}
+          roomParticipants={roomParticipants}
+          currentUserId={currentUserId}
+          currentUserName={currentUserName}
+          meetingCall={meetingCall}
+          displayLocalStream={displayLocalStream}
+          localVideoRef={localVideoRef}
+          videoRefs={videoRefs}
+          chatMessages={chatMessages}
+          chatInput={chatInput}
+          setChatInput={setChatInput}
+          handleSendChat={handleSendChat}
+          chatContainerRef={chatContainerRef}
+          copyMeetingLink={copyMeetingLink}
+          handleLeaveMeeting={handleLeaveMeeting}
+          onUploadRecordings={handleUploadRecordings}
+          lobbyRequests={lobbyRequests}
+          onAdmitToLobby={handleAdmitToLobby}
         />
       )}
 
-      {/* Meeting Form Modal */}
-      {showForm && !readOnly && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
-          <div className="bg-zinc-900 rounded-xl border border-zinc-700/60 shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-700/50">
-              <div>
-                <h2 className="text-sm font-semibold text-white">
-                  {editingMeeting ? "Edit meeting" : "Schedule a meeting"}
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Set meeting details, participants and reminders
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={resetFormState}
-                className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="px-4 py-3 space-y-3 overflow-y-auto text-xs"
-            >
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => handleFormChange("title", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Team sync, client call, support session..."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-zinc-400 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={form.date}
-                    min={todayLocalStr}
-                    onChange={(e) => handleFormChange("date", e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] text-zinc-400 mb-1">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    value={form.time}
-                    min={
-                      form.date === todayLocalStr
-                        ? `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`
-                        : undefined
-                    }
-                    onChange={(e) => handleFormChange("time", e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-zinc-400 mb-1">
-                    Type
-                  </label>
-                  <select
-                    value={form.meeting_type}
-                    onChange={(e) =>
-                      handleFormChange("meeting_type", e.target.value)
-                    }
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      {/* ---- Main view (calendar + meeting list) ---- */}
+      {showMainView && (
+        <div className="w-full h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden px-4 sm:px-6 lg:px-8 py-6">
+          {/* Instant meeting: is it open for everyone with the link? (Yes / No only) */}
+          {showInstantMeetingDialog && !readOnly && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true">
+              <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-xl max-w-sm w-full mx-4">
+                <h3 className="text-lg font-semibold text-white mb-2">Start instant meeting</h3>
+                <p className="text-sm text-zinc-400 mb-6">Is it open for everyone with the link?</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleInstantMeeting(true)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500"
                   >
-                    {MEETING_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] text-zinc-400 mb-1">
-                    Duration (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.duration_minutes}
-                    onChange={(e) =>
-                      handleFormChange("duration_minutes", e.target.value)
-                    }
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInstantMeeting(false)}
+                    className="flex-1 px-4 py-3 rounded-lg bg-zinc-700 text-white font-medium hover:bg-zinc-600"
+                  >
+                    No
+                  </button>
                 </div>
               </div>
+            </div>
+          )}
 
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">
-                  Description
-                </label>
-                <textarea
-                  rows={2}
-                  value={form.description}
-                  onChange={(e) =>
-                    handleFormChange("description", e.target.value)
-                  }
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
-                  placeholder="Agenda, notes, goals..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={form.location}
-                  onChange={(e) => handleFormChange("location", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Meeting room, office..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">
-                  Participants
-                </label>
-                <p className="text-[10px] text-zinc-500 mb-1.5">
-                  Only added participants will see this meeting and can join when it starts.
-                </p>
-                <div className="mb-1 flex flex-wrap gap-1">
-                  {form.participants.length === 0 && (
-                    <span className="text-[11px] text-zinc-500">
-                      No participants added yet
-                    </span>
-                  )}
-                  {form.participants.map((p) => (
-                    <span
-                      key={p._id}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700/70 text-[11px] text-zinc-100"
-                    >
-                      {p.full_name || p.email || "User"}
-                      <button
-                        type="button"
-                        onClick={() => removeParticipant(p._id)}
-                        className="p-0.5 rounded-full hover:bg-zinc-700 text-zinc-400"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleParticipantSearchInput}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        if (searchQuery.trim()) searchUsers(searchQuery);
-                      }
-                    }}
-                    placeholder="Search by name or email..."
-                    className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                {searchError && (
-                  <p className="mt-1 text-[11px] text-red-400">{searchError}</p>
-                )}
-                {searchingUsers && (
-                  <div className="mt-1.5 flex items-center gap-2 text-[11px] text-zinc-400">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Searching...
-                  </div>
-                )}
-                {!searchingUsers && searchQuery.trim() && searchResults.length === 0 && (
-                  <p className="mt-1.5 text-[11px] text-zinc-500">No users found</p>
-                )}
-                {!searchingUsers && searchResults.length > 0 && (
-                  <div className="mt-1.5 max-h-36 overflow-y-auto border border-zinc-700/60 rounded-lg bg-zinc-900/80 divide-y divide-zinc-700/50">
-                    {searchResults
-                      .filter(
-                        (u) => !form.participants.some((p) => String(p._id) === String(u._id))
-                      )
-                      .map((u) => (
-                        <button
-                          key={u._id}
-                          type="button"
-                          onClick={() => addParticipant(u)}
-                          className="w-full flex items-center justify-between px-3 py-2 text-left text-[11px] text-zinc-200 hover:bg-zinc-800 transition"
-                        >
-                          <span className="truncate font-medium">
-                            {u.full_name || u.email || "User"}
-                          </span>
-                          {u.email && (
-                            <span className="ml-2 text-[10px] text-zinc-500 truncate shrink-0 max-w-[140px]">
-                              {u.email}
-                            </span>
-                          )}
-                          <span className="ml-2 text-[10px] text-indigo-400 shrink-0">Add</span>
-                        </button>
-                      ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-zinc-400 mb-1">
-                  Reminders
-                </label>
-                <div className="flex flex-wrap gap-1">
-                  {DEFAULT_REMINDERS.map((m) => {
-                    const active = form.reminders.includes(m);
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => toggleReminder(m)}
-                        className={[
-                          "px-2.5 py-1 rounded-full text-[11px] border transition-colors",
-                          active
-                            ? "bg-indigo-600 text-white border-indigo-500"
-                            : "bg-zinc-800 text-zinc-200 border-zinc-700 hover:bg-zinc-700",
-                        ].join(" ")}
-                      >
-                        {m} min before
-                      </button>
-                    );
-                  })}
-                  {form.reminders.length === 0 && (
-                    <span className="text-[11px] text-zinc-500">
-                      No reminders selected
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2 border-t border-zinc-700/50 mt-2">
+          <div className="flex-shrink-0 flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-xl font-semibold text-white mb-1">Meetings</h1>
+              <p className="text-sm text-zinc-400">
+                Schedule, manage and get reminders for your meetings
+              </p>
+            </div>
+            {!readOnly && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={resetFormState}
-                  className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs text-zinc-200 hover:bg-zinc-700"
+                  onClick={startInstantMeetingFlow}
+                  disabled={creatingInstant || !socket}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition shadow-sm disabled:opacity-50"
                 >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 text-xs text-white hover:bg-indigo-500 disabled:opacity-60 inline-flex items-center gap-1.5"
-                >
-                  {creating && <Loader2 className="w-3 h-3 animate-spin" />}
-                  <span>
-                    {editingMeeting ? "Save changes" : "Create meeting"}
+                  {creatingInstant ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {creatingInstant ? "Starting..." : "Instant meeting"}
                   </span>
                 </button>
+                <button
+                  type="button"
+                  onClick={openCreateForm}
+                  disabled={isSelectedDatePast}
+                  title={isSelectedDatePast ? "Select a current or future date to schedule" : undefined}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Schedule meeting</span>
+                </button>
               </div>
+            )}
+          </div>
+
+          {/* Join by code or link */}
+          <div className="flex-shrink-0 mb-4 p-4 bg-zinc-900 rounded-xl border border-zinc-700/50">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4" />
+              Join by meeting code or link
+            </h3>
+            <p className="text-xs text-zinc-400 mb-3">
+              Enter the meeting code or paste the full meeting link to join.
+            </p>
+            <form onSubmit={handleJoinByCode} className="flex gap-2">
+              <input
+                type="text"
+                value={joinCodeInput}
+                onChange={(e) => setJoinCodeInput(e.target.value)}
+                placeholder="e.g. ABC12345 or https://.../join/ABC12345"
+                className="flex-1 min-w-0 max-w-md px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-sm text-white font-mono placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+              <button
+                type="submit"
+                disabled={joiningByCode || !joinCodeInput.trim()}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition disabled:opacity-50"
+              >
+                {joiningByCode ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <LogIn className="w-4 h-4" />
+                )}
+                Join
+              </button>
             </form>
           </div>
+
+          {/* Calendar + list: fills remaining space, no page scroll */}
+          <div className="flex-1 min-h-0 flex flex-col xl:flex-row gap-6 overflow-hidden">
+            {/* Calendar */}
+            <div className="flex-shrink-0 bg-zinc-900 rounded-xl border border-zinc-700/50 p-5 w-full xl:max-w-[1000px] overflow-y-auto max-h-[calc(100vh-12rem)]">
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={() => changeMonth(-1)}
+                  className="px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
+                >
+                  &#8592; Prev
+                </button>
+                <div className="text-base font-semibold text-white tracking-wide">
+                  {monthLabel}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => changeMonth(1)}
+                  className="px-3 py-1.5 text-zinc-300 hover:bg-zinc-800 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Next &#8594;
+                </button>
+              </div>
+
+              <div className="grid grid-cols-7 text-xs font-medium text-zinc-400 mb-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                  <div key={d} className="text-center py-1.5">
+                    {d}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-1.5 text-sm">
+                {calendarDays.map((day, idx) => {
+                  if (!day) {
+                    return (
+                      <div
+                        key={`blank-${idx}`}
+                        className="min-h-[4rem] py-2 rounded-lg bg-zinc-900/50"
+                      />
+                    );
+                  }
+
+                  const key = toLocalDateString(day);
+                  const dayMeetings = meetingsByDay[key] || [];
+                  const isToday = isSameDay(day, today);
+                  const isSelected = isSameDay(day, selectedDate);
+
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleCalendarDayClick(day)}
+                      className={[
+                        "min-h-[4rem] py-2 rounded-lg flex flex-col items-center justify-center border text-sm font-medium transition-all cursor-pointer",
+                        isSelected
+                          ? "border-indigo-500 bg-indigo-500/20 text-white shadow-sm shadow-indigo-500/20"
+                          : "border-zinc-700/40 text-zinc-200 hover:bg-zinc-800/80 hover:border-zinc-600",
+                        isToday && !isSelected
+                          ? "ring-2 ring-indigo-500/50 ring-offset-1 ring-offset-zinc-900"
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    >
+                      <span className="leading-none">{day.getDate()}</span>
+                      {dayMeetings.length > 0 && (
+                        <div className="flex items-center gap-0.5 mt-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                          {dayMeetings.length > 1 && (
+                            <span className="text-[9px] text-emerald-400 font-medium leading-none">
+                              {dayMeetings.length}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {loading && (
+                <div className="flex items-center gap-2 mt-4 text-xs text-zinc-400">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Loading meetings...
+                </div>
+              )}
+            </div>
+
+            {/* Selected day meeting list: fills remaining height, scrolls internally */}
+            <div className="flex-1 min-h-0 flex flex-col min-w-0 w-full xl:w-[480px] bg-zinc-900 rounded-xl border border-zinc-700/50 p-4 overflow-hidden">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs text-zinc-400 mb-0.5">Selected day</p>
+                  <p className="text-sm font-medium text-white">
+                    {selectedDate.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Search & Filter bar */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                  <input
+                    type="text"
+                    value={meetingSearchQuery}
+                    onChange={(e) => setMeetingSearchQuery(e.target.value)}
+                    placeholder="Search meetings..."
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-2 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  {STATUS_FILTERS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedDateMeetings.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                  <CalendarDays className="w-8 h-8 text-zinc-700 mb-2" />
+                  <p className="text-sm text-zinc-400 mb-1">
+                    No meetings scheduled
+                  </p>
+                  <p className="text-xs text-zinc-500 mb-2">
+                    Schedule your first meeting for this day
+                  </p>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={openCreateForm}
+                      disabled={isSelectedDatePast}
+                      title={isSelectedDatePast ? "Select a current or future date to schedule" : undefined}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 text-xs text-zinc-100 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
+                    >
+                      <Plus className="w-3 h-3" />
+                      New meeting
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
+                  {selectedDateMeetings.map((m) => {
+                    const d = m.scheduled_at ? new Date(m.scheduled_at) : null;
+                    const timeLabel = d
+                      ? d.toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                      : "--";
+                    const isActive = m.status === "active";
+                    const isCancelled = m.status === "cancelled";
+                    const isEnded = m.status === "ended";
+                    const isPast =
+                      d &&
+                      d.getTime() < Date.now() &&
+                      !isCancelled &&
+                      !isEnded &&
+                      !isActive;
+                    const relTime = d ? getRelativeTime(d) : "";
+                    const participants = (m.participants || []).map(
+                      (p) =>
+                        p.full_name ||
+                        `${p.first_name || ""} ${p.last_name || ""}`.trim() ||
+                        p.email ||
+                        "User"
+                    );
+
+                    return (
+                      <div
+                        key={m._id}
+                        className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 p-3 text-xs"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-white truncate">
+                              {m.title}
+                            </p>
+                            <div className="flex items-center flex-wrap gap-2 text-[11px] text-zinc-400 mt-0.5">
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                {timeLabel}
+                                {m.duration_minutes
+                                  ? ` • ${m.duration_minutes} min`
+                                  : ""}
+                              </span>
+                              {m.meeting_type && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-zinc-900 text-[10px] uppercase tracking-wide">
+                                  {MEETING_TYPES.find(
+                                    (t) => t.value === m.meeting_type
+                                  )?.label || m.meeting_type}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            {isActive ? (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/30 inline-flex items-center gap-1">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                Live
+                              </span>
+                            ) : isCancelled ? (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30">
+                                Cancelled
+                              </span>
+                            ) : isEnded ? (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/60">
+                                Ended
+                              </span>
+                            ) : isPast ? (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/60">
+                                Past
+                              </span>
+                            ) : (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                Upcoming
+                              </span>
+                            )}
+                            {relTime && (
+                              <span className="text-[10px] text-zinc-500">
+                                {relTime}
+                              </span>
+                            )}
+                            <div className="flex gap-1">
+                              {m.meeting_code && isHost(m) && m.status === "active" && !readOnly && (
+                                <button
+                                  type="button"
+                                  onClick={() => copyMeetingLink(m)}
+                                  className="px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-200 hover:bg-zinc-800 inline-flex items-center gap-1"
+                                  title="Copy invite link"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                  Link
+                                </button>
+                              )}
+                              {!isCancelled && !isEnded && isHost(m) && !readOnly && (
+                                <button
+                                  type="button"
+                                  onClick={() => openEditForm(m)}
+                                  className="px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-200 hover:bg-zinc-800"
+                                >
+                                  Edit
+                                </button>
+                              )}
+                              {!isCancelled && !isEnded && isHost(m) && !readOnly && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelMeeting(m)}
+                                  className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                              {(isCancelled || isEnded) && isHost(m) && !readOnly && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteMeeting(m)}
+                                  className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 hover:bg-red-500/20 inline-flex items-center gap-1"
+                                  title="Delete permanently"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  Delete
+                                </button>
+                              )}
+                              {canEnterMeeting(m) && isParticipant(m) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleEnterMeeting(m)}
+                                  className="px-2 py-0.5 rounded text-[10px] bg-indigo-600 text-white hover:bg-indigo-500"
+                                >
+                                  {isHost(m) ? "Start meeting" : "Join meeting"}
+                                </button>
+                              )}
+                              {/* Show waiting message for participants when host hasn't started yet */}
+                              {!canEnterMeeting(m) &&
+                                isParticipant(m) &&
+                                !isHost(m) &&
+                                m.status === "scheduled" && (
+                                  <span className="px-2 py-0.5 rounded text-[10px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 inline-flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    Waiting for host
+                                  </span>
+                                )}
+                              {/* Show message when 5-minute start window has expired */}
+                              {!canEnterMeeting(m) &&
+                                m.status === "scheduled" &&
+                                m.scheduled_at &&
+                                Date.now() >= new Date(m.scheduled_at).getTime() + 5 * 60 * 1000 && (
+                                  <span className="px-2 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 border border-red-500/30 inline-flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    Auto-cancelled (not started in time)
+                                  </span>
+                                )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {m.description && (
+                          <p className="text-[11px] text-zinc-300 mt-1 line-clamp-2">
+                            {m.description}
+                          </p>
+                        )}
+
+                        {isEnded && isParticipant(m) && (
+                          <div className="mt-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRecordingModal({ meetingId: m._id, meetingTitle: m.title });
+                                fetchMeetingRecordings(m._id);
+                              }}
+                              disabled={loadingRecordingsId === m._id}
+                              className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] bg-zinc-800 text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
+                            >
+                              {loadingRecordingsId === m._id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Video className="w-3 h-3" />
+                              )}
+                              View recordings
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="mt-1 space-y-1">
+                          {participants.length > 0 && (
+                            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                              <Users className="w-3 h-3" />
+                              <span className="truncate">
+                                {participants.join(", ")}
+                              </span>
+                            </div>
+                          )}
+                          {m.location && (
+                            <p className="text-[11px] text-zinc-400">
+                              Location:{" "}
+                              <span className="text-zinc-200">{m.location}</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recording Playback Modal */}
+          {recordingModal && (
+            <RecordingPlaybackModal
+              recordingModal={recordingModal}
+              setRecordingModal={setRecordingModal}
+              loadingRecordingsId={loadingRecordingsId}
+              recordingsByMeeting={recordingsByMeeting}
+              axiosConfig={axiosConfig}
+            />
+          )}
+
+          {/* Meeting Form Modal */}
+          {showForm && !readOnly && (
+            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
+              <div className="bg-zinc-900 rounded-xl border border-zinc-700/60 shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-700/50">
+                  <div>
+                    <h2 className="text-sm font-semibold text-white">
+                      {editingMeeting ? "Edit meeting" : "Schedule a meeting"}
+                    </h2>
+                    <p className="text-xs text-zinc-400">
+                      Set meeting details, participants and reminders
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetFormState}
+                    className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="px-4 py-3 space-y-3 overflow-y-auto text-xs"
+                >
+                  <div>
+                    <label className="block text-[11px] text-zinc-400 mb-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => handleFormChange("title", e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      placeholder="Team sync, client call, support session..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-zinc-400 mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={form.date}
+                        min={todayLocalStr}
+                        onChange={(e) => handleFormChange("date", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-zinc-400 mb-1">
+                        Time
+                      </label>
+                      <input
+                        type="time"
+                        value={form.time}
+                        min={
+                          form.date === todayLocalStr
+                            ? `${String(new Date().getHours()).padStart(2, "0")}:${String(new Date().getMinutes()).padStart(2, "0")}`
+                            : undefined
+                        }
+                        onChange={(e) => handleFormChange("time", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-zinc-400 mb-1">
+                        Type
+                      </label>
+                      <select
+                        value={form.meeting_type}
+                        onChange={(e) =>
+                          handleFormChange("meeting_type", e.target.value)
+                        }
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      >
+                        {MEETING_TYPES.map((t) => (
+                          <option key={t.value} value={t.value}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-zinc-400 mb-1">
+                        Duration (minutes)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={form.duration_minutes}
+                        onChange={(e) =>
+                          handleFormChange("duration_minutes", e.target.value)
+                        }
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-zinc-400 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={form.description}
+                      onChange={(e) =>
+                        handleFormChange("description", e.target.value)
+                      }
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                      placeholder="Agenda, notes, goals..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-zinc-400 mb-1">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={form.location}
+                      onChange={(e) => handleFormChange("location", e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      placeholder="Meeting room, office..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-zinc-400 mb-1">
+                      Participants
+                    </label>
+                    <p className="text-[10px] text-zinc-500 mb-1.5">
+                      Only added participants will see this meeting and can join when it starts.
+                    </p>
+                    <div className="mb-1 flex flex-wrap gap-1">
+                      {form.participants.length === 0 && (
+                        <span className="text-[11px] text-zinc-500">
+                          No participants added yet
+                        </span>
+                      )}
+                      {form.participants.map((p) => (
+                        <span
+                          key={p._id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700/70 text-[11px] text-zinc-100"
+                        >
+                          {p.full_name || p.email || "User"}
+                          <button
+                            type="button"
+                            onClick={() => removeParticipant(p._id)}
+                            className="p-0.5 rounded-full hover:bg-zinc-700 text-zinc-400"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleParticipantSearchInput}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (searchQuery.trim()) searchUsers(searchQuery);
+                          }
+                        }}
+                        placeholder="Search by name or email..."
+                        className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700/60 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    {searchError && (
+                      <p className="mt-1 text-[11px] text-red-400">{searchError}</p>
+                    )}
+                    {searchingUsers && (
+                      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-zinc-400">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Searching...
+                      </div>
+                    )}
+                    {!searchingUsers && searchQuery.trim() && searchResults.length === 0 && (
+                      <p className="mt-1.5 text-[11px] text-zinc-500">No users found</p>
+                    )}
+                    {!searchingUsers && searchResults.length > 0 && (
+                      <div className="mt-1.5 max-h-36 overflow-y-auto border border-zinc-700/60 rounded-lg bg-zinc-900/80 divide-y divide-zinc-700/50">
+                        {searchResults
+                          .filter(
+                            (u) => !form.participants.some((p) => String(p._id) === String(u._id))
+                          )
+                          .map((u) => (
+                            <button
+                              key={u._id}
+                              type="button"
+                              onClick={() => addParticipant(u)}
+                              className="w-full flex items-center justify-between px-3 py-2 text-left text-[11px] text-zinc-200 hover:bg-zinc-800 transition"
+                            >
+                              <span className="truncate font-medium">
+                                {u.full_name || u.email || "User"}
+                              </span>
+                              {u.email && (
+                                <span className="ml-2 text-[10px] text-zinc-500 truncate shrink-0 max-w-[140px]">
+                                  {u.email}
+                                </span>
+                              )}
+                              <span className="ml-2 text-[10px] text-indigo-400 shrink-0">Add</span>
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-zinc-400 mb-1">
+                      Reminders
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {DEFAULT_REMINDERS.map((m) => {
+                        const active = form.reminders.includes(m);
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => toggleReminder(m)}
+                            className={[
+                              "px-2.5 py-1 rounded-full text-[11px] border transition-colors",
+                              active
+                                ? "bg-indigo-600 text-white border-indigo-500"
+                                : "bg-zinc-800 text-zinc-200 border-zinc-700 hover:bg-zinc-700",
+                            ].join(" ")}
+                          >
+                            {m} min before
+                          </button>
+                        );
+                      })}
+                      {form.reminders.length === 0 && (
+                        <span className="text-[11px] text-zinc-500">
+                          No reminders selected
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end gap-2 border-t border-zinc-700/50 mt-2">
+                    <button
+                      type="button"
+                      onClick={resetFormState}
+                      className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs text-zinc-200 hover:bg-zinc-700"
+                    >
+                      Close
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-600 text-xs text-white hover:bg-indigo-500 disabled:opacity-60 inline-flex items-center gap-1.5"
+                    >
+                      {creating && <Loader2 className="w-3 h-3 animate-spin" />}
+                      <span>
+                        {editingMeeting ? "Save changes" : "Create meeting"}
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
       )}
     </div>
   );

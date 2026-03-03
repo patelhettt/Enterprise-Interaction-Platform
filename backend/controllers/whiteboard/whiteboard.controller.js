@@ -33,7 +33,7 @@ export const getMyWhiteboards = async (req, res) => {
     const { status = "active" } = req.query;
     const whiteboards = await Whiteboard.find({
       status,
-      $or: [{ owner_id: userId }, { collaborators: userId }, { is_public: true }],
+      $or: [{ owner_id: userId }, { collaborators: userId }],
     })
       .populate("owner_id", "name email profile_picture")
       .populate("last_edited_by", "name email profile_picture")

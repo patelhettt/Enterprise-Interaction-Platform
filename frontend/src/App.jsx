@@ -18,6 +18,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
+import SharedProtectedRoute from "./components/SharedProtectedRoute";
 
 import { Toaster } from "@/components/ui/sonner";
 
@@ -104,10 +105,14 @@ function App() {
         <Route
           path="/documents/:id"
           element={
-            <ProtectedRoute>
+            <SharedProtectedRoute>
               <DocumentEditor />
-            </ProtectedRoute>
+            </SharedProtectedRoute>
           }
+        />
+        <Route
+          path="/documents/share/:token"
+          element={<DocumentEditor />}
         />
 
         {/* ADMIN PROTECTED */}

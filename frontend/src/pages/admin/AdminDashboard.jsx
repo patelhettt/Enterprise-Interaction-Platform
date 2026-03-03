@@ -1,5 +1,26 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import EmployeeManagement from "./EmployeeManagement";
+import Dashboard from "./Dashboard";
+import AdminProfilePage from "./AdminProfilePage";
+import AnalyticsDashboard from "./AnalyticsDashboard";
+import AttendanceDashboard from "./AttendanceDashboard";
+import DepartmentManagement from "./DepartmentManagement";
+import AdminChangePasswordPage from "./AdminChangePasswordPage";
+import TicketManagement from "./TicketManagement";
+import RoleManagement from "./RoleManagement";
+import DocumentsPage from "../documents/DocumentsPage";
+import ChatInterface from "@/components/ChatInterface";
+import MeetingModule from "@/components/MeetingModule";
+import WhiteboardModule from "@/components/WhiteboardModule";
+import FloatingMeetingBar from "@/components/FloatingMeetingBar";
+import { GlobalCallProvider } from "@/context/CallContextProvider";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { FileText as FileTextIcon } from "lucide-react"; // Renamed to avoid overlap if needed, or directly import FileText and add it.
+// Updating import if it's already there or add it cleanly:
 import {
   Users,
   LayoutDashboard,
@@ -18,25 +39,8 @@ import {
   Ticket,
   ShieldCheck,
   PenLine,
+  FileText
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import EmployeeManagement from "./EmployeeManagement";
-import Dashboard from "./Dashboard";
-import AdminProfilePage from "./AdminProfilePage";
-import AnalyticsDashboard from "./AnalyticsDashboard";
-import AttendanceDashboard from "./AttendanceDashboard";
-import DepartmentManagement from "./DepartmentManagement";
-import AdminChangePasswordPage from "./AdminChangePasswordPage";
-import TicketManagement from "./TicketManagement";
-import RoleManagement from "./RoleManagement";
-import ChatInterface from "@/components/ChatInterface";
-import MeetingModule from "@/components/MeetingModule";
-import WhiteboardModule from "@/components/WhiteboardModule";
-import FloatingMeetingBar from "@/components/FloatingMeetingBar";
-import { GlobalCallProvider } from "@/context/CallContextProvider";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -70,6 +74,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (searchParams.get("joinCode")) {
       setCurrentPage("meetings");
+    } else if (searchParams.get("tab")) {
+      setCurrentPage(searchParams.get("tab"));
     }
   }, [searchParams]);
 
@@ -89,6 +95,7 @@ export default function AdminDashboard() {
     { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { id: "employees", icon: Users, label: "Employees" },
     { id: "departments", icon: Building2, label: "Departments" },
+    { id: "documents", icon: FileText, label: "Documents" },
     { id: "messages", icon: MessageSquare, label: "Messages" },
     { id: "meetings", icon: Video, label: "Meetings" },
     { id: "attendance", icon: CalendarCheck, label: "Attendance" },
@@ -107,6 +114,8 @@ export default function AdminDashboard() {
         return <EmployeeManagement />;
       case "departments":
         return <DepartmentManagement />;
+      case "documents":
+        return <DocumentsPage />;
       case "messages":
         return <ChatInterface />;
       case "attendance":

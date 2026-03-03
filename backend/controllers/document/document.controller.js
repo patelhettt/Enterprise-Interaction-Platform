@@ -60,7 +60,6 @@ export const listDocuments = async (req, res) => {
       $or: [
         { owner: userId },
         { "collaborators.user": userId },
-        { is_public: true },
       ],
     })
       .sort({ updated_at: -1 })
