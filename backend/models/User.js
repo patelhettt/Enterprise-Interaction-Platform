@@ -53,10 +53,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    company_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
-    },
+
     last_login: {
       type: Date,
     },
@@ -76,7 +73,7 @@ const userSchema = new mongoose.Schema(
 // Indexes
 userSchema.index({ email: 1 });
 userSchema.index({ user_type: 1 });
-userSchema.index({ company_id: 1 });
+
 userSchema.index({ resetPasswordToken: 1 });
 
 export default mongoose.model("User", userSchema);

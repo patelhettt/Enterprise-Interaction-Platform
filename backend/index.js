@@ -10,7 +10,7 @@ import aiRoutes from "./routes/ai.routes.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import helperRoutes from "./routes/helper.routes.js";
 import chatRouter from "./routes/chat.routes.js";
-import fileRoutes from "./routes/file.routes.js";
+
 import directChatRouter from "./routes/directChat.routes.js";
 import callRoutes from "./routes/call.routes.js";
 import meetingRoutes from "./routes/meeting.routes.js";
@@ -19,7 +19,6 @@ import attendanceRoutes from "./routes/attendance.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
 import departmentRoutes from "./routes/department.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
-import roleRoutes from "./routes/role.routes.js";
 import whiteboardRoutes from "./routes/whiteboard.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import { verifyEmailConfig } from "./utils/emailService.js";
@@ -36,12 +35,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// CORS configuration
-// app.use(cors({
-//   origin: "*",        // allow all origins
-//   credentials: true
-// }));
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -86,7 +79,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/files", fileRoutes);
+
 app.use("/api/employees", employeeRoutes);
 app.use("/api/helper", helperRoutes);
 app.use("/api/chat", chatRouter);
@@ -99,7 +92,6 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave", leaveRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/tickets", ticketRoutes);
-app.use("/api/roles", roleRoutes);
 app.use("/api/whiteboards", whiteboardRoutes);
 app.use("/api/documents", documentRoutes);
 // Admin dashboard stats

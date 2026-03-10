@@ -9,7 +9,6 @@ import AttendanceDashboard from "./AttendanceDashboard";
 import DepartmentManagement from "./DepartmentManagement";
 import AdminChangePasswordPage from "./AdminChangePasswordPage";
 import TicketManagement from "./TicketManagement";
-import RoleManagement from "./RoleManagement";
 import DocumentsPage from "../documents/DocumentsPage";
 import ChatInterface from "@/components/ChatInterface";
 import MeetingModule from "@/components/MeetingModule";
@@ -100,7 +99,6 @@ export default function AdminDashboard() {
     { id: "meetings", icon: Video, label: "Meetings" },
     { id: "attendance", icon: CalendarCheck, label: "Attendance" },
     { id: "tickets", icon: Ticket, label: "Tickets" },
-    { id: "roles", icon: ShieldCheck, label: "Roles & Access" },
 
     { id: "whiteboard", icon: PenLine, label: "Whiteboard" },
     { id: "profile", icon: User, label: "Profile" },
@@ -122,8 +120,6 @@ export default function AdminDashboard() {
         return <AttendanceDashboard />;
       case "tickets":
         return <TicketManagement />;
-      case "roles":
-        return <RoleManagement />;
 
       case "profile":
         return <AdminProfilePage onNavigate={handleNavigation} />;

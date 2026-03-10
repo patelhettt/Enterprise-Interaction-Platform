@@ -15,7 +15,7 @@ import {
   verifyAdminAccess,
   verifyEmployeeAccess,
 } from "../controllers/auth/auth.controller.js";
-import { verifyToken, isAdmin, isHR } from "../middlewares/auth.middleware.js";
+import { verifyToken, isAdmin } from "../middlewares/auth.middleware.js";
 import { uploadProfilePic } from "../config/cloudinary.js";
 
 const router = express.Router();
