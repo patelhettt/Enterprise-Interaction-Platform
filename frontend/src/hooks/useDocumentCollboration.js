@@ -31,7 +31,6 @@ export function useDocumentCollaboration(socket, docId, currentUserId, userName)
   // cursor-jump on every remote keystroke)
   const onRemoteUpdateRef = useRef(null);
   const onRemoteTitleUpdateRef = useRef(null);
-  const onRemoteSlideUpdateRef = useRef(null);
 
   // Debounce timers
   const broadcastTimerRef = useRef(null);
@@ -121,19 +120,12 @@ export function useDocumentCollaboration(socket, docId, currentUserId, userName)
       }));
     };
 
-    // Handle incoming slide patch
-    const handleSlideUpdate = ({ patch, senderId }) => {
-      if (String(senderId) === String(currentUserId)) return;
-      onRemoteSlideUpdateRef.current?.({ patch });
-    };
-
     socket.on("doc-update", handleDocUpdate);
     socket.on("doc-full-state", handleFullState);
     socket.on("doc-collaborators", handleCollaborators);
     socket.on("doc-typing", handleTyping);
     socket.on("doc-cursor", handleCursor);
     socket.on("doc-title-update", handleDocTitleUpdate);
-    socket.on("doc-slide-update", handleSlideUpdate);
 
     return () => {
       socket.off("doc-update", handleDocUpdate);
@@ -142,7 +134,6 @@ export function useDocumentCollaboration(socket, docId, currentUserId, userName)
       socket.off("doc-typing", handleTyping);
       socket.off("doc-cursor", handleCursor);
       socket.off("doc-title-update", handleDocTitleUpdate);
-      socket.off("doc-slide-update", handleSlideUpdate);
     };
   }, [socket, docId, currentUserId]);
 
@@ -180,10 +171,6 @@ export function useDocumentCollaboration(socket, docId, currentUserId, userName)
     onRemoteTitleUpdateRef.current = cb;
   }, []);
 
-  const registerRemoteSlideUpdateHandler = useCallback((cb) => {
-    onRemoteSlideUpdateRef.current = cb;
-  }, []);
-
   /**
    * Broadcast a local content change to all other users in the room.
    * Debounced to 150 ms.
@@ -211,14 +198,6 @@ export function useDocumentCollaboration(socket, docId, currentUserId, userName)
         console.log(`[DOC_COLLAB] emitting doc-title-update`);
         socket.emit("doc-title-update", { docId, title });
       }, 150);
-    },
-    [socket, docId]
-  );
-
-  const broadcastSlideUpdate = useCallback(
-    (patch) => {
-      if (!socket?.connected || !docId) return;
-      socket.emit("doc-slide-update", { docId, patch });
     },
     [socket, docId]
   );
@@ -255,10 +234,8 @@ export function useDocumentCollaboration(socket, docId, currentUserId, userName)
     remoteCursors,               // { [userId]: { name, color, cursor } } — cursor positions
     registerRemoteUpdateHandler, // call once on editor mount
     registerRemoteTitleUpdateHandler,
-    registerRemoteSlideUpdateHandler,
     broadcastUpdate,             // call on every input event
     broadcastTitleUpdate,
-    broadcastSlideUpdate,
     broadcastTyping,             // call on every keydown/input event
     broadcastCursor,             // call on selectionchange for cursor tracking
   };
