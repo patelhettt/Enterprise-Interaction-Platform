@@ -136,6 +136,9 @@ export const getMyStats = async (req, res) => {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     monthEnd.setHours(23, 59, 59, 999);
 
+    // Find the employee record for this user (needed for ticket lookup)
+    const employee = await Employee.findOne({ user_id: userId }).lean();
+
     const [
       attendanceThisMonth,
       pendingLeaves,
@@ -150,10 +153,12 @@ export const getMyStats = async (req, res) => {
       }),
       LeaveRequest.countDocuments({ employee_id: userId, status: "pending" }),
       LeaveRequest.countDocuments({ employee_id: userId, status: "approved" }),
-      SupportTicket.countDocuments({
-        assigned_agent_id: { $exists: true },
-        status: { $in: ["open", "in_progress"] },
-      }),
+      employee
+        ? SupportTicket.countDocuments({
+            assigned_agent_id: employee._id,
+            status: { $in: ["open", "in_progress"] },
+          })
+        : Promise.resolve(0),
       Meeting.countDocuments({
         participants: userId,
         status: "scheduled",
@@ -164,9 +169,11 @@ export const getMyStats = async (req, res) => {
     // Calculate working days passed this month (Mon–Fri)
     let workingDays = 0;
     const today = new Date(now);
-    for (let d = new Date(monthStart); d <= today && d <= monthEnd; d.setDate(d.getDate() + 1)) {
+    const d = new Date(monthStart);
+    while (d <= today && d <= monthEnd) {
       const dayOfWeek = d.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) workingDays++;
+      d.setDate(d.getDate() + 1);
     }
 
     res.json({
