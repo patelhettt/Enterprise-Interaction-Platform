@@ -545,7 +545,7 @@ export default function CommonEditor() {
 
   const docIdForSocket = id || (doc ? doc._id : null);
 
-  const { collaborators, typingUsers, registerRemoteUpdateHandler, registerRemoteTitleUpdateHandler, registerRemoteSlideUpdateHandler, broadcastUpdate, broadcastTitleUpdate, broadcastSlideUpdate, broadcastTyping } =
+  const { collaborators, typingUsers, registerRemoteUpdateHandler, registerRemoteTitleUpdateHandler, broadcastUpdate, broadcastTitleUpdate, broadcastTyping } =
     useDocumentCollaboration(socket, docIdForSocket, currentUserId, userName);
 
 
@@ -554,7 +554,6 @@ export default function CommonEditor() {
   const [errorMsg, setErrorMsg] = useState("");
   const saveTimerRef = useRef(null);
   const fullSaveTimerRef = useRef(null);
-  const [remotePatch, setRemotePatch] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
@@ -587,38 +586,13 @@ export default function CommonEditor() {
   }, [id, token]);
 
   useEffect(() => {
-    // For doc_type "doc", the DocumentEditor component will handle content initialization.
-    // For other types, this effect is still relevant if they don't use a dedicated component.
-    if (doc?.doc_type === "sheet" || doc?.doc_type === "slide") return;
-    // The original logic for doc_type "doc" is now moved into the DocumentEditor component.
-    // This useEffect will no longer directly manipulate editorRef.current for "doc" type.
+    if (doc?.doc_type === "sheet") return;
   }, [doc]);
 
+  // Handle generic full-text string updates for SpreadsheetEditor and MarkdownEditor
   useEffect(() => {
-    registerRemoteSlideUpdateHandler(({ patch }) => {
-      setRemotePatch({ ...patch, _ts: Date.now(), _rand: Math.random() });
-    });
-  }, [registerRemoteSlideUpdateHandler]);
-
-  // Handle generic full-text string updates for DocumentEditor and SpreadsheetEditor
-  useEffect(() => {
-    registerRemoteUpdateHandler(({ content, isFullState }) => {
-      if (doc?.doc_type === "sheet" || doc?.doc_type === "doc") {
-        setDoc(prev => ({ ...prev, content }));
-        return;
-      }
-      if (doc?.doc_type === "slide") {
-        setDoc(prev => ({ ...prev, content }));
-        if (isFullState) {
-          try {
-            const p = JSON.parse(content);
-            if (p.slides) {
-              setRemotePatch({ type: "SYNC_ALL", sourceSlides: p.slides, _ts: Date.now(), _rand: Math.random() });
-            }
-          } catch { }
-        }
-        return;
-      }
+    registerRemoteUpdateHandler(({ content }) => {
+      setDoc(prev => ({ ...prev, content }));
     });
   }, [registerRemoteUpdateHandler, doc?.doc_type]);
 
@@ -627,16 +601,6 @@ export default function CommonEditor() {
       setDoc(d => d ? { ...d, title } : d);
     });
   }, [registerRemoteTitleUpdateHandler]);
-
-  /* Listen for slide theme updates from collaborators */
-  useEffect(() => {
-    if (!socket || !docIdForSocket) return;
-    const handler = ({ theme }) => {
-      if (theme) setDoc(d => d ? { ...d, slide_theme: theme } : d);
-    };
-    socket.on("doc-theme-update", handler);
-    return () => socket.off("doc-theme-update", handler);
-  }, [socket, docIdForSocket]);
 
   const save = useCallback(async (contentToSave, overrideTitle) => {
     if (isReadOnly) return;

@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
   MessageSquare,
   Video,
   Users,
@@ -21,6 +29,9 @@ import {
   Building2,
   Laptop2,
   Home as HomeIcon,
+  Ticket,
+  CalendarDays,
+  BarChart3,
 } from "lucide-react";
 import { BACKEND_URL } from "../../config";
 import { toast } from "sonner";
@@ -57,6 +68,8 @@ export default function EmployeeHome({ onNavigate }) {
 
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [myStats, setMyStats] = useState(null);
+  const [attendanceTrend, setAttendanceTrend] = useState([]);
 
   const fetchTodayAttendance = async () => {
     try {
@@ -106,7 +119,27 @@ export default function EmployeeHome({ onNavigate }) {
   useEffect(() => {
     fetchUpcomingMeetings();
     fetchTodayAttendance();
+    fetchMyStats();
+    fetchAttendanceTrend();
   }, []);
+
+  const fetchMyStats = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/analytics/my-stats`, { headers });
+      setMyStats(res.data);
+    } catch {
+      // silently fail
+    }
+  };
+
+  const fetchAttendanceTrend = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/analytics/my-attendance-trend`, { headers });
+      setAttendanceTrend(res.data);
+    } catch {
+      // silently fail
+    }
+  };
 
   const fetchUpcomingMeetings = async () => {
     try {
@@ -327,6 +360,115 @@ export default function EmployeeHome({ onNavigate }) {
             )}
           </div>
         </div>
+
+        {/* My Quick Stats */}
+        {myStats && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="size-4 text-zinc-500" />
+              <h2 className="text-sm font-semibold text-zinc-300">
+                My Stats — {myStats.month}
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                    <CalendarCheck className="size-4 text-emerald-400" />
+                  </div>
+                  <span className="text-xs text-zinc-500">Attendance</span>
+                </div>
+                <p className="text-xl font-bold text-white">
+                  {myStats.attendanceThisMonth}
+                  <span className="text-sm font-normal text-zinc-500">
+                    /{myStats.workingDaysSoFar} days
+                  </span>
+                </p>
+              </div>
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/10">
+                    <CalendarDays className="size-4 text-amber-400" />
+                  </div>
+                  <span className="text-xs text-zinc-500">Pending Leaves</span>
+                </div>
+                <p className="text-xl font-bold text-white">
+                  {myStats.pendingLeaves}
+                  {myStats.approvedLeaves > 0 && (
+                    <span className="text-sm font-normal text-emerald-400 ml-1.5">
+                      +{myStats.approvedLeaves} approved
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-blue-500/10">
+                    <Ticket className="size-4 text-blue-400" />
+                  </div>
+                  <span className="text-xs text-zinc-500">Open Tickets</span>
+                </div>
+                <p className="text-xl font-bold text-white">{myStats.openTickets}</p>
+              </div>
+              <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-violet-500/10">
+                    <Video className="size-4 text-violet-400" />
+                  </div>
+                  <span className="text-xs text-zinc-500">Upcoming Meetings</span>
+                </div>
+                <p className="text-xl font-bold text-white">{myStats.upcomingMeetings}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Weekly Attendance Trend */}
+        {attendanceTrend.length > 0 && (
+          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="size-4 text-indigo-400" />
+              <h3 className="text-sm font-semibold text-zinc-300">
+                My Week — Attendance
+              </h3>
+            </div>
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={attendanceTrend} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                  <defs>
+                    <linearGradient id="hoursGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="label" tick={{ fill: "#71717a", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#71717a", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 8, fontSize: 12 }}
+                    labelStyle={{ color: "#a1a1aa" }}
+                    itemStyle={{ color: "#818cf8" }}
+                    formatter={(value) => [`${value}h`, "Hours"]}
+                  />
+                  <Area type="monotone" dataKey="hours" stroke="#818cf8" strokeWidth={2} fill="url(#hoursGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
+              {attendanceTrend.map((d) => (
+                <span
+                  key={d.date}
+                  className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                    d.status === "present" || d.status === "late" || d.status === "half_day"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-zinc-800/60 text-zinc-500 border-zinc-700/30"
+                  }`}
+                >
+                  {d.label}: {d.status === "absent" ? "—" : d.status}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div>

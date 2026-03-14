@@ -38,7 +38,7 @@ export const createDocument = async (req, res) => {
     const doc = new Document({
       title: title || "Untitled document",
       content: content || "",
-      doc_type: ["doc", "sheet", "slide"].includes(doc_type) ? doc_type : "doc",
+      doc_type: ["sheet", "markdown"].includes(doc_type) ? doc_type : "markdown",
       owner,
       is_public: !!is_public,
       collaborators: [],
@@ -121,7 +121,7 @@ export const getDocumentById = async (req, res) => {
 export const updateDocument = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, is_public, slide_theme } = req.body;
+    const { title, content, is_public } = req.body;
     const userId = getUid(req);
 
     const doc = await Document.findById(id);
@@ -141,8 +141,6 @@ export const updateDocument = async (req, res) => {
     if (is_public !== undefined && isOwnerOrAdmin(doc, userId, req)) {
       doc.is_public = !!is_public;
     }
-
-    if (slide_theme !== undefined) doc.slide_theme = slide_theme;
 
     await doc.save();
     await doc.populate("owner", "first_name last_name email profile_picture");
